@@ -10,7 +10,7 @@ import numpy as np
 
 
 
-cut = 1
+cut = 4
 
 def get_data():
     mnist = fetch_openml('mnist_784')

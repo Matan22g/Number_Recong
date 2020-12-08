@@ -131,12 +131,13 @@ def classiffy(data):
     # plt.imshow(im, cmap = 'gray')
     # plt.show()
 
-    iter_num = 100
+    iter_num = 4
     percision_delta = 2.5
     last_percision = 0
     percision = 0
     num_of_consistency = 0
-
+    percision_array = []
+    loss_array = []
     for i in range(iter_num):
         progressBar(i, iter_num, percision)
 
@@ -144,8 +145,11 @@ def classiffy(data):
         W = update_weights(W, h, t_train, X_train, N)
         # print("for: ", i , (old_W==W).all())
 
-        # loss = calc_loss_entropy_cross(W, t_train, X_train, N)
+        loss = calc_loss_entropy_cross(W, t_train, X_train, N)
+        loss_array.append(loss)
+
         percision = calc_percision(X_valid, t_valid, W)
+        percision_array.append(percision)
 
         if last_percision == 0:
             last_percision = percision
@@ -157,3 +161,15 @@ def classiffy(data):
             num_of_consistency = 0
         if num_of_consistency == 10:
             print("10 iter without change stoping..")
+
+    x_for_plot = [i+1 for i in range(iter_num)]
+
+    plt.plot(x_for_plot, percision_array)
+    plt.xlabel("Iteration #")
+    plt.ylabel("Percision Percantage")
+    plt.show()
+
+    plt.plot(x_for_plot, loss_array)
+    plt.xlabel("Iteration #")
+    plt.ylabel("loss_array")
+    plt.show()
