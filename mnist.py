@@ -10,12 +10,14 @@ import numpy as np
 
 
 
+cut = 1
+
 def get_data():
     mnist = fetch_openml('mnist_784')
     X = mnist['data'].astype('float64')
     t = mnist['target']
 
-    amount = int(X.shape[0]/4)
+    amount = int(X.shape[0]/cut)
     # amount = X.shape[0]
 
     random_state = check_random_state(1)
@@ -26,24 +28,6 @@ def get_data():
 
     X_train, X_test, t_train, t_test = train_test_split(X, t, test_size=0.2)
     X_train, X_valid,t_train, t_valid = train_test_split(X_train, t_train, test_size=0.25)
-
-    # print(X_train.shape)
-    # print(X_train)
-    # print(X_test.shape)
-    # print(X_test)
-    # im = X_train[0]
-    # im = np.reshape(im, (-1, 28))
-    # plt.imshow(im, cmap = 'gray')
-    # plt.show()
-    #
-    # print(t_train.shape)
-    # print(t_train)
-    # im = X_test[0]
-    # im = np.reshape(im, (-1, 28))
-    # plt.imshow(im, cmap = 'gray')
-    # plt.show()
-    # print(t_test.shape)
-    # print(t_test)
 
     # The next lines standardize the images
 
