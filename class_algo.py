@@ -59,8 +59,6 @@ def calc_loss_entropy_cross(W,t,X,N):
             ln_y_n_k = calc_matrix_ln(y_n_k) # ln_y_n_k.shape (785, 785)
             iter_mul = t_n*y_n_k # iter_mul.shape (785, 785)
             E_w += iter_mul # E_w.shape (785, 785)
-
-
     return E_w
 
 def calc_grad(W,t,X,N,j):
@@ -83,8 +81,23 @@ def update_weights(W,h,t,X,N):
         W[j] = new_weight_j
     return W
 
-def calc_percision():
-    pass
+def predict(x_n,W):
+    j_max = 0
+    max_val = calc_y_n_k(W, x_n, 0)
+    for j in range(W.shape[0]):
+        y_n_j = calc_y_n_k(W, x_n, j)  # y_n_j shape:  (785, 785)
+        if y_n_j>max_val:
+            max_val = y_n_j
+            j_max = j
+
+def calc_percision(X_valid, t_valid, W):
+    num_of_valid = X_valid.shape[0]
+    for k in range(W.shape[0]):
+        x_n = X_valid[n]  # x_n shape:  (785,)
+        y_n_k = calc_y_n_k(W, x_n, k)  # y_n_j shape:  (785, 785)
+        ln_y_n_k = calc_matrix_ln(y_n_k)  # ln_y_n_k.shape (785, 785)
+        iter_mul = t_n * y_n_k  # iter_mul.shape (785, 785)
+        E_w += iter_mul  # E_w.shape (785, 785)
 
 def classiffy(data):
     print("start classifiy")
@@ -95,9 +108,15 @@ def classiffy(data):
     W = np.random.random((10, 784))
     W = np.column_stack((W, [1] * W.shape[0]))  # adding bias 1
 
-    iter_num = 100
-    percision_delta = 0
+    im = X_valid[0]
+    im = np.reshape(im[:-1], (-1, 28))
+    plt.imshow(im, cmap = 'gray')
+    plt.show()
 
+    predict(X_valid[0], W)
+
+    # iter_num = 100
+    # percision_delta = 0
     # for i in range(iter_num):
     #     W = update_weights(W,h,t_train,X_train,N)
     #     loss = calc_loss_entropy_cross(W,t_train,X_train,N)
