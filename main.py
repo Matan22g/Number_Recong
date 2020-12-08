@@ -1,3 +1,8 @@
+#### Main file to import only one time the database
+#### then keeping the data and running the algo-script
+#### allowing fast re-running, avoiding long import time.
+
+
 import sys
 from imp import reload
 

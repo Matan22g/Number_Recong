@@ -1,7 +1,10 @@
+#### Algorithm implementation
+
 import matplotlib.pylab as plt
 import numpy as np
 from scipy.linalg import expm
 from numpy.linalg import inv
+
 
 
 def calc_matrix_exp(A):

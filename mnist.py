@@ -1,9 +1,15 @@
+#### Importing the Database
+
+
 from sklearn.datasets import fetch_openml
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from sklearn.utils import check_random_state
 import matplotlib.pylab as plt
 import numpy as np
+
+
+
 
 def get_data():
     mnist = fetch_openml('mnist_784')
