@@ -131,7 +131,7 @@ def classiffy(data):
     # plt.imshow(im, cmap = 'gray')
     # plt.show()
 
-    iter_num = 4
+    iter_num = 2
     percision_delta = 2.5
     last_percision = 0
     percision = 0
@@ -164,12 +164,26 @@ def classiffy(data):
 
     x_for_plot = [i+1 for i in range(iter_num)]
 
-    plt.plot(x_for_plot, percision_array)
-    plt.xlabel("Iteration #")
-    plt.ylabel("Percision Percantage")
-    plt.show()
-
-    plt.plot(x_for_plot, loss_array)
-    plt.xlabel("Iteration #")
-    plt.ylabel("loss_array")
+    # plt.plot(x_for_plot, percision_array)
+    # plt.xlabel("Iteration #")
+    # plt.ylabel("Percision Percantage")
+    # plt.show()
+    #
+    # plt.plot(x_for_plot, loss_array)
+    # plt.xlabel("Iteration #")
+    # plt.ylabel("loss_array")
+    # plt.show()
+    fig = plt.figure()
+    ax1 = fig.add_subplot(1, 2, 1)
+    ax2 = fig.add_subplot(1, 2, 2)
+    ax1.plot(x_for_plot, percision_array, label='Percision Percantage')
+    ax2.plot(x_for_plot, loss_array, label='loss_array')
+    ax1.set_xlabel('Iteration (#)')
+    ax1.set_ylabel('Percision (%)')
+    ax1.set_title('Percision Percantage')
+    ax1.legend()
+    ax2.set_xlabel('Iteration (#)')
+    ax2.set_ylabel('loss_array')
+    ax2.set_title('loss_array')
+    ax2.legend()
     plt.show()
