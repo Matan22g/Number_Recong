@@ -17,7 +17,7 @@ if __name__ == "__main__":
             part1Cache = get_data()
 
         try:
-            class_algo.classiffy(part1Cache)
+            class_algo.main_classiffy(part1Cache)
         except Exception as e:
             print(e)
 

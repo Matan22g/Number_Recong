@@ -1,45 +1,32 @@
 #### Algorithm implementation
-import sys
 
+import sys
 import matplotlib.pylab as plt
 import numpy as np
-from scipy.linalg import logm, expm
-from numpy.linalg import inv
 
 
+def progressBar(i, total, percision):
+    percent = (i / total) * 100
+    sys.stdout.write("\rIter Done %i/%i, Percision %i%%" % (i, total, percision))
+    if i == total - 1:
+        print("\n")
+    sys.stdout.flush()
 
-def calc_y_n_k(W, x, k):
-    # W is the matrix of all the weight vectors
-    # x is the image vector
-    x = np.array([x]).T
-    w_k = np.array([W[k]])
+def my_softmax(x):
+    # Compute softmax values for each row in matrix x
+    e_x = np.exp(x - np.max(x, axis=1).reshape(-1, 1))
+    return e_x / e_x.sum(axis=1).reshape(-1, 1)
 
-    numerator_mul = w_k @ x  # numerator_mul shape:  1X1
-    # numerator_res = calc_matrix_exp(numerator_mul)
-    try:
-        numerator_res = np.exp(numerator_mul[0][0])
-    except RuntimeWarning as e:
-        return 0
 
-    denominator_sum = 0
+def predict(im, W):
+    W_xn_mat = (im / 255) @ W.T
 
-    for j in range(W.shape[0]):
+    im = np.reshape(im[:-1], (-1, 28))
+    plt.imshow(im, cmap='gray')
+    plt.show()
 
-        w_j = np.array([W[j]])
-        denominator_mul = w_j @ x
-        try:
-            denominator_res = np.exp(denominator_mul[0][0])
-        except RuntimeWarning as e: # skipping that iter
-            denominator_res = 0  #
-        denominator_sum += denominator_res
-
-    try:
-        y_n_k = numerator_res / denominator_sum
-
-    except RuntimeWarning as e:
-        return 0
-
-    return y_n_k
+    y_nk = my_softmax([W_xn_mat])
+    return np.argmax(y_nk, axis=1)[0]
 
 
 # getting W matrix of 10X(img_dim^2) and X is vector of training data
@@ -47,108 +34,77 @@ def calc_y_n_k(W, x, k):
 # then calc the E = SUM(SUM(t_n_k*ln(y_n_k))
 def calc_loss_entropy_cross(W, t, X, N):
     E_w = 0
-    for n in range(N):
-        t_n = int(t[n])
-
-        for k in range(W.shape[0]):
-            x_n = X[n]  # x_n shape:  (785,)
-            y_n_k = calc_y_n_k(W, x_n, k)
-            try:
-                ln_y_n_k = np.log(y_n_k)
-            except RuntimeWarning as e:
-                ln_y_n_k = 0
-            iter_mul = t_n * y_n_k
-            E_w += iter_mul
+    W_xn_mat = X @ W.T
+    y_n_k = my_softmax(W_xn_mat)
+    E_w += np.log(y_n_k) - t
     return E_w
 
 
-def progressBar(i, total, percision):
-    percent = (i / total) * 100
-    sys.stdout.write("\rPercent Done %i%% Percision %i" % (percent,percision))
-    if i == total - 1:
-        print("\n")
-    sys.stdout.flush()
-
-
-def calc_grad(W, t, X, N, j):
-    grad = 0
-    for n in range(N):
-        t_n = int(t[n])
-        x_n = X[n]
-        y_n_j = calc_y_n_k(W, x_n, j)
-        sub = y_n_j - t_n
-        grad += sub * x_n
-    return grad
-
 def update_weights(W, h, t, X, N):
-    for j in range(W.shape[0]):
-        grad = calc_grad(W, t, X, N, j)
-
-        new_weight_j = W[j] - h * grad
-        W[j] = new_weight_j
+    W_xn_mat = X @ W.T
+    y_nk = my_softmax(W_xn_mat)
+    grad = X.T @ (y_nk - t)
+    W = W - (h * grad).T
     return W
-
-def predict(x_n, W):
-    j_max = 0
-    max_val = 0
-    for j in range(W.shape[0]):
-        y_n_j = calc_y_n_k(W, x_n, j)
-        if y_n_j > max_val:
-            max_val = y_n_j
-            j_max = j
-    return j_max
 
 
 def calc_percision(X_valid, t_valid, W):
-    num_of_valid = X_valid.shape[0]
-    correct_amount = 0
     valid_amount = X_valid.shape[0]
-    for i in range(valid_amount):
-        prediction = predict(X_valid[i], W)
-        real = int(t_valid[i])
-        # print("prediction", prediction)
-        # print("t_valid["+str(i)+"] " + str(t_valid[i]))
-        if prediction == real:
-            correct_amount += 1
-    # print("correct_amount",correct_amount)
-    percision = (correct_amount / valid_amount) * 100
-    # print("percision: " + str(percision)+ "%")
+
+    W_xn_mat = X_valid @ W.T
+    y_nk = my_softmax(W_xn_mat)
+
+    num_Correct = (np.argmax(y_nk, axis=1) == np.argmax(t_valid, axis=1))
+
+    acc = num_Correct.sum() / valid_amount
+    percision = (acc) * 100
+
     return percision
 
-
-
-def classiffy(data):
-    print("start classifiy")
+def classiffy(data, heta, iter):
+    print("Start classifiy")
     X_train, X_test, X_valid, t_train, t_test, t_valid = data
-    h = 0.1  # heta
+    h = heta  # heta
     N = X_train.shape[0]  # Number of samples to train
 
     W = np.random.random((10, 784))
     W = np.column_stack((W, [1] * W.shape[0]))  # adding bias 1
 
-    # im = X_valid[0]
-    # im = np.reshape(im[:-1], (-1, 28))
-    # plt.imshow(im, cmap = 'gray')
-    # plt.show()
+    iter_lim = iter
 
-    iter_num = 2
-    percision_delta = 2.5
+    percision_delta = 0.5
     last_percision = 0
     percision = 0
     num_of_consistency = 0
+    max_val = np.amax(X_train)
+    print("Heta:", h)
+
+    # Convert str to int
+    t_train_int = t_train.astype(np.int)
+    t_valid_int = t_valid.astype(np.int)
+
+    # Build t matrices
+    t_train_mat = np.zeros((t_train.shape[0], 10), dtype=int)
+    t_valid_mat = np.zeros((t_valid.shape[0], 10), dtype=int)
+    t_train_mat[[range(t_train.shape[0])], [t_train_int]] = 1
+    t_valid_mat[[range(t_valid.shape[0])], [t_valid_int]] = 1
+
+    X_train, X_test, X_valid = X_train / 255, X_test / 255, X_valid / 255
+
     percision_array = []
     loss_array = []
-    for i in range(iter_num):
-        progressBar(i, iter_num, percision)
+    i = 0
 
-        # old_W = np.copy(W)
-        W = update_weights(W, h, t_train, X_train, N)
-        # print("for: ", i , (old_W==W).all())
+    while True:
+        i += 1
 
-        loss = calc_loss_entropy_cross(W, t_train, X_train, N)
+        progressBar(i, iter_lim, percision)
+        W = update_weights(W, h, t_train_mat, X_train, N)
+
+        loss = calc_loss_entropy_cross(W, t_train_mat, X_train, N)
         loss_array.append(loss)
 
-        percision = calc_percision(X_valid, t_valid, W)
+        percision = calc_percision(X_valid, t_valid_mat, W)
         percision_array.append(percision)
 
         if last_percision == 0:
@@ -159,25 +115,32 @@ def classiffy(data):
             num_of_consistency += 1
         else:
             num_of_consistency = 0
-        if num_of_consistency == 10:
-            print("10 iter without change stoping..")
 
-    x_for_plot = [i+1 for i in range(iter_num)]
+        if num_of_consistency == 35:
+            print("\n35 iter without change stoping..")
+            break
 
-    # plt.plot(x_for_plot, percision_array)
-    # plt.xlabel("Iteration #")
-    # plt.ylabel("Percision Percantage")
-    # plt.show()
-    #
-    # plt.plot(x_for_plot, loss_array)
-    # plt.xlabel("Iteration #")
-    # plt.ylabel("loss_array")
-    # plt.show()
+        if i > iter_lim:
+            print("\nencounter iter limit stoping..")
+            break
+
+    return W, percision_array, loss_array
+
+def main_classiffy(data):
+
+    heta = 0.015
+    iteration = 300
+    W, percision_array, loss_array = classiffy(data, heta, iteration)
+    X_train, X_test, X_valid, t_train, t_test, t_valid = data
+
+    #### Further amusement
+    x1_for_plot = [i+1 for i in range(len(percision_array))]
+    x2_for_plot = [i+1 for i in range(len(percision_array))]
     fig = plt.figure()
     ax1 = fig.add_subplot(1, 2, 1)
     ax2 = fig.add_subplot(1, 2, 2)
-    ax1.plot(x_for_plot, percision_array, label='Percision Percantage')
-    ax2.plot(x_for_plot, loss_array, label='loss_array')
+    ax1.plot(x1_for_plot, percision_array, label='Percision Percantage')
+    ax2.plot(x2_for_plot, percision_array, label='loss_array')
     ax1.set_xlabel('Iteration (#)')
     ax1.set_ylabel('Percision (%)')
     ax1.set_title('Percision Percantage')
@@ -187,3 +150,31 @@ def classiffy(data):
     ax2.set_title('loss_array')
     ax2.legend()
     plt.show()
+
+def test(W,x,t):
+
+    t_valid_int = t.astype(np.int)
+
+    t_valid_mat = np.zeros((14000, 10), dtype=int)
+    t_valid_mat[[range(14000)], [t_valid_int]] = 1
+
+    X_valid = x / 255
+
+    valid_amount = X_valid.shape[0]
+    W_xn_mat = X_valid @ W.T
+    y_nk = my_softmax(W_xn_mat)
+    num_Correct = (np.argmax(y_nk, axis=1) == np.argmax(t_valid_mat, axis=1))
+    acc = num_Correct.sum() / valid_amount
+
+    real = np.argmax(t_valid_mat, axis=1)
+    guess = np.argmax(y_nk, axis=1)
+    X_valid = X_valid * 255
+
+    for i in range(10):
+        print("real: ", real[i])
+        print("guess: ", guess[i])
+
+        im = X_valid[i]
+        im = np.reshape(im[:-1], (-1, 28))
+        plt.imshow(im, cmap='gray')
+        plt.show()
