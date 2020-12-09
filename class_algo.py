@@ -137,9 +137,6 @@ def classiffy(data, heta, iter):
             print("\nencounter iter limit stoping..")
             break
 
-    print("heta: ", h)
-    print("iter: ", i)
-    print("percision: ", percision)
     return W, percision_array, loss_array
 
 
