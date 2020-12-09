@@ -12,8 +12,16 @@ def progressBar(i, total, percision):
     sys.stdout.flush()
 
 
-def my_softmax(x):
-    # Compute softmax values for each row in matrix x
+def calc_y_nk(x):
+    # gets the matrix of X.T @ W
+    # caculate the exponnet for each val, with sub max so wont get overflow
+    # then divide the each val by the sum ot it row, so we get
+    # the right y_n_k element finaly geting:
+    #             [ y00 y01 ... y09 ]
+    #                   .
+    #                       .
+    #             [ yN0 yN1 ... yN9 ]
+
     e_x = np.exp(x - np.max(x, axis=1).reshape(-1, 1))
     return e_x / e_x.sum(axis=1).reshape(-1, 1)
 
@@ -25,7 +33,7 @@ def predict(im, W):
     plt.imshow(im, cmap='gray')
     plt.show()
 
-    y_nk = my_softmax([W_xn_mat])
+    y_nk = calc_y_nk([W_xn_mat])
     return np.argmax(y_nk, axis=1)[0]
 
 
@@ -52,7 +60,7 @@ def calc_percision(X_valid, t_valid, W):
     valid_amount = X_valid.shape[0]
 
     W_xn_mat = X_valid @ W.T
-    y_nk = my_softmax(W_xn_mat)
+    y_nk = calc_y_nk(W_xn_mat)
 
     num_Correct = (np.argmax(y_nk, axis=1) == np.argmax(t_valid, axis=1))
 
@@ -102,7 +110,7 @@ def classiffy(data, heta, iter):
         progressBar(i, iter_lim, percision)
 
         W_xn_mat = X_train @ W.T
-        y_nk = my_softmax(W_xn_mat)
+        y_nk = calc_y_nk(W_xn_mat)
 
         loss = calc_loss_entropy_cross(y_nk, t_train_mat)
         loss_array.append(loss)
@@ -198,7 +206,7 @@ def test(W,x,t):
 
     valid_amount = X_valid.shape[0]
     W_xn_mat = X_valid @ W.T
-    y_nk = my_softmax(W_xn_mat)
+    y_nk = calc_y_nk(W_xn_mat)
     num_Correct = (np.argmax(y_nk, axis=1) == np.argmax(t_valid_mat, axis=1))
     acc = num_Correct.sum() / valid_amount
 
